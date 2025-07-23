@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4a6fa5">
+    <title>Tick To Next - Task Management</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <!-- For charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- For animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- App Header -->
+        <header class="app-header">
+            <h1>Tick To Next</h1>
+            <div class="header-icons">
+                <button id="stats-btn" aria-label="Statistics">
+                    <i class="fas fa-chart-pie"></i>
+                </button>
+                <button id="settings-btn" aria-label="Settings">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Navigation Tabs -->
+        <nav class="main-tabs">
+            <button class="tab-btn active" data-tab="daily">Daily</button>
+            <button class="tab-btn" data-tab="upcoming">Upcoming</button>
+            <button class="tab-btn" data-tab="missed">Missed</button>
+            <button class="tab-btn" data-tab="calendar">Calendar</button>
+        </nav>
+
+        <!-- Task Filter Section -->
+        <div class="filter-section">
+            <button id="filter-toggle" aria-label="Show filters">
+                <i class="fas fa-filter"></i> Filters
+            </button>
+            <div class="filter-options hidden">
+                <div class="filter-group">
+                    <label for="category-filter">Category</label>
+                    <select id="category-filter" multiple>
+                        <option value="home">Home</option>
+                        <option value="personal">Personal</option>
+                        <option value="work">Work</option>
+                        <option value="study">Study</option>
+                        <option value="others">Others</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="date-filter">Date</label>
+                    <input type="date" id="date-filter">
+                </div>
+                <div class="filter-group">
+                    <label>Priority</label>
+                    <div class="priority-toggles">
+                        <button class="priority-btn" data-priority="high">
+                            <span class="priority-dot high"></span> High
+                        </button>
+                        <button class="priority-btn" data-priority="medium">
+                            <span class="priority-dot medium"></span> Medium
+                        </button>
+                        <button class="priority-btn" data-priority="low">
+                            <span class="priority-dot low"></span> Low
+                        </button>
+                    </div>
+                </div>
+                <button id="apply-filters">Apply</button>
+                <button id="clear-filters">Clear</button>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <main class="content-area">
+            <!-- Daily Tasks Tab -->
+            <section id="daily-tab" class="tab-content active">
+                <h2>Today's Tasks</h2>
+                <div class="task-list" id="daily-tasks">
+                    <!-- Tasks will be populated here -->
+                </div>
+            </section>
+
+            <!-- Upcoming Tasks Tab -->
+            <section id="upcoming-tab" class="tab-content">
+                <h2>Upcoming Tasks</h2>
+                <div class="task-list" id="upcoming-tasks">
+                    <!-- Tasks will be populated here -->
+                </div>
+            </section>
+
+            <!-- Missed Tasks Tab -->
+            <section id="missed-tab" class="tab-content">
+                <h2>Missed Tasks</h2>
+                <div class="task-list" id="missed-tasks">
+                    <!-- Tasks will be populated here -->
+                </div>
+            </section>
+
+            <!-- Calendar Tab -->
+            <section id="calendar-tab" class="tab-content">
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <button id="prev-month"><i class="fas fa-chevron-left"></i></button>
+                        <h2 id="calendar-month">Month Year</h2>
+                        <button id="next-month"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <div>Sun</div>
+                        <div>Mon</div>
+                        <div>Tue</div>
+                        <div>Wed</div>
+                        <div>Thu</div>
+                        <div>Fri</div>
+                        <div>Sat</div>
+                    </div>
+                    <div class="calendar-days" id="calendar-days">
+                        <!-- Calendar days will be populated here -->
+                    </div>
+                </div>
+                <div id="calendar-tasks" class="calendar-tasks hidden">
+                    <div class="calendar-tasks-header">
+                        <h3 id="selected-date">Tasks for Date</h3>
+                        <button id="close-calendar-tasks"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div id="calendar-tasks-list">
+                        <!-- Tasks for selected date will be shown here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Statistics Modal -->
+        <div id="stats-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Statistics</h2>
+                    <button class="close-modal"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="stats-tabs">
+                    <button class="stats-tab-btn active" data-stats-tab="completion">Completion</button>
+                    <button class="stats-tab-btn" data-stats-tab="trends">Trends</button>
+                    <button class="stats-tab-btn" data-stats-tab="categories">Categories</button>
+                </div>
+                <div class="stats-content">
+                    <div id="completion-stats" class="stats-tab-content active">
+                        <canvas id="completion-chart"></canvas>
+                    </div>
+                    <div id="trends-stats" class="stats-tab-content">
+                        <canvas id="trends-chart"></canvas>
+                    </div>
+                    <div id="categories-stats" class="stats-tab-content">
+                        <canvas id="categories-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Settings</h2>
+                    <button class="close-modal"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="settings-options">
+                    <div class="setting-item">
+                        <span>Theme</span>
+                        <label class="switch">
+                            <input type="checkbox" id="theme-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                        <span id="theme-label">Light</span>
+                    </div>
+                    <div class="setting-item">
+                        <span>Notifications</span>
+                        <label class="switch">
+                            <input type="checkbox" id="notification-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item categories-manager">
+                        <h3>Manage Categories</h3>
+                        <div id="categories-list">
+                            <!-- Categories will be populated here -->
+                        </div>
+                        <div class="add-category">
+                            <input type="text" id="new-category" placeholder="New category name">
+                            <button id="add-category-btn">Add</button>
+                        </div>
+                    </div>
+                    <button id="clear-completed" class="danger-btn">Clear Completed Tasks</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add/Edit Task Modal -->
+        <div id="task-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="task-modal-title">Add New Task</h2>
+                    <button class="close-modal"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="task-form">
+                    <div class="form-group">
+                        <label for="task-title">Task Title</label>
+                        <input type="text" id="task-title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-date">Due Date</label>
+                        <input type="date" id="task-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Priority</label>
+                        <div class="priority-selector">
+                            <label class="priority-option">
+                                <input type="radio" name="task-priority" value="high" required>
+                                <span class="priority-dot high"></span>
+                                <span>High</span>
+                            </label>
+                            <label class="priority-option">
+                                <input type="radio" name="task-priority" value="medium">
+                                <span class="priority-dot medium"></span>
+                                <span>Medium</span>
+                            </label>
+                            <label class="priority-option">
+                                <input type="radio" name="task-priority" value="low">
+                                <span class="priority-dot low"></span>
+                                <span>Low</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-category">Category</label>
+                        <select id="task-category" required>
+                            <option value="home">Home</option>
+                            <option value="personal">Personal</option>
+                            <option value="work">Work</option>
+                            <option value="study">Study</option>
+                            <option value="others">Others</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Subtasks</label>
+                        <div id="subtasks-container">
+                            <!-- Subtasks will be added here -->
+                        </div>
+                        <button type="button" id="add-subtask">+ Add Subtask</button>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="cancel-task">Cancel</button>
+                        <button type="submit" id="save-task">Save Task</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Floating Action Button -->
+        <button id="add-task-btn" class="fab" aria-label="Add new task">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+
+    <script src="js/main.js" type="module"></script>
+</body>
+</html>
